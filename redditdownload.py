@@ -10,6 +10,7 @@ from os.path import exists as pathexists, join as pathjoin, basename as pathbase
 from os import mkdir
 from reddit import getitems
 from HTMLParser import HTMLParser
+import statvfs, os 
 
 # Used to extract src from Deviantart URLs
 class DeviantHTMLParser(HTMLParser):
@@ -275,7 +276,15 @@ if __name__ == "__main__":
 
                     # Only append numbers if more than one file.
                     FILENUM = ('_%d' % FILECOUNT if len(URLS) > 1 else '')
-                    FILENAME = '%s%s%s' % (ITEM['id'], FILENUM, FILEEXT)
+
+                    # Set reddit post title as image name
+                    title = ITEM['title'].replace('/', '|')
+
+                    # If reddit title is longer than max filename length, we trim the title
+                    max_filename_length = os.statvfs(ARGS.dir)[statvfs.F_NAMEMAX] - len(FILEEXT)
+                    if len(title) > max_filename_length:
+                        title = title[:max_filename_length]
+                    FILENAME = "%s%s%s" % (title, FILENUM, FILEEXT)
                     FILEPATH = pathjoin(ARGS.dir, FILENAME)
                     
                     # Improve debuggability list URL before download too.
